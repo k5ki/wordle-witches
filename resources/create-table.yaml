@@ -1,0 +1,10 @@
+TableName: witches
+AttributeDefinitions:
+  - AttributeName: id
+    AttributeType: N
+KeySchema:
+  - AttributeName: id
+    KeyType: HASH
+ProvisionedThroughput:
+  ReadCapacityUnits: 5
+  WriteCapacityUnits: 5

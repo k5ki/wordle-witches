@@ -1,0 +1,52 @@
+{
+  "witches": [
+    {
+      "PutRequest": {
+        "Item": {
+          "id": {
+            "N": "1"
+          },
+          "name": {
+            "S": "ichiro"
+          },
+          "hometown": {
+            "S": "Tokyo"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "id": {
+            "N": "2"
+          },
+          "name": {
+            "S": "jiro"
+          },
+          "hometown": {
+            "S": "Chiba"
+          },
+          "hobby": {
+            "S": "table tennis"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "id": {
+            "N": "3"
+          },
+          "name": {
+            "S": "saburo"
+          },
+          "hometown": {
+            "S": "Kanagawa"
+          }
+        }
+      }
+    }
+  ]
+}
