@@ -1,5 +1,6 @@
 import boto3
 from fastapi import FastAPI
+from fastapi.requests import Request
 
 from .adapter.controller import Controller
 from .adapter.repository import RepositoryImpl
@@ -28,3 +29,7 @@ class Server:
         @self.app.get("/list")
         async def list_witches() -> list[dict]:
             return self.controller.get_list()
+
+        @self.app.post("/challenge")
+        async def challenge(request: Request) -> dict:
+            return await self.controller.post_challenge(request)

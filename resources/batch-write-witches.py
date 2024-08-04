@@ -21,7 +21,7 @@ def main():
 
             batch.put_item(
                 Item={
-                    "id": i + 1,
+                    "id": i,
                     "name": row[0],
                     "nation": row[1],
                     "branch": row[2],

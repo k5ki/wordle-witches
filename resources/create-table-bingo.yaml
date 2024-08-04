@@ -1,0 +1,10 @@
+TableName: bingo_witches
+AttributeDefinitions:
+  - AttributeName: date
+    AttributeType: S
+KeySchema:
+  - AttributeName: date
+    KeyType: HASH
+ProvisionedThroughput:
+  ReadCapacityUnits: 5
+  WriteCapacityUnits: 5
