@@ -9,5 +9,5 @@ class Player:
         self.id = id
         self.guesses = guesses
 
-    def challenge_count(self):
+    def challenge_count(self) -> int:
         return len(self.guesses)

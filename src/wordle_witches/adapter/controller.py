@@ -12,8 +12,11 @@ class Controller:
         self.witch_repository = witch_repository
         self.player_repository = player_repository
 
-    def get_list(self) -> list[dict]:
+    def get_witches(self) -> list[dict]:
         return [w.__dict__ for w in self.witch_repository.all()]
+
+    def get_witch(self, id: int) -> dict:
+        return self.witch_repository.find_by_id(id).__dict__
 
     async def post_challenge(self, request: Request, response: Response) -> dict:
         player = None
