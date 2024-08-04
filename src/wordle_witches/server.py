@@ -1,9 +1,9 @@
 import boto3
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.requests import Request
 
 from .adapter.controller import Controller
-from .adapter.repository import RepositoryImpl
+from .adapter.repository import PlayerRepositoryImpl, WitchRepositoryImpl
 
 
 class Server:
@@ -17,8 +17,9 @@ class Server:
             aws_access_key_id="AKI000000000000000",
             aws_secret_access_key="secret_access_key",
         )
-        repository = RepositoryImpl(dynamodb)
-        self.controller = Controller(repository)
+        witch_repository = WitchRepositoryImpl(dynamodb)
+        player_repository = PlayerRepositoryImpl(dynamodb)
+        self.controller = Controller(witch_repository, player_repository)
         self.__add_routes()
 
     def __add_routes(self) -> None:
@@ -31,5 +32,9 @@ class Server:
             return self.controller.get_list()
 
         @self.app.post("/challenge")
-        async def challenge(request: Request) -> dict:
-            return await self.controller.post_challenge(request)
+        async def challenge(request: Request, response: Response) -> dict:
+            return await self.controller.post_challenge(request, response)
+
+        @self.app.post("/reset")
+        async def reset(request: Request, response: Response) -> None:
+            return self.controller.reset_session(request, response)
