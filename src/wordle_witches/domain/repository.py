@@ -1,3 +1,4 @@
+from typing_extensions import List
 from wordle_witches.domain.player import Player
 from .witch import Witch
 from abc import ABC, abstractmethod
@@ -5,7 +6,7 @@ from abc import ABC, abstractmethod
 
 class WitchRepository(ABC):
     @abstractmethod
-    def all(self) -> list[Witch]:
+    def all(self) -> List[Witch]:
         pass
 
     @abstractmethod

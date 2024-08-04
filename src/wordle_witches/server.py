@@ -27,9 +27,13 @@ class Server:
         async def root() -> dict:
             return {"message": "Hello World"}
 
-        @self.app.get("/list")
+        @self.app.get("/witches")
         async def list_witches() -> list[dict]:
-            return self.controller.get_list()
+            return self.controller.get_witches()
+
+        @self.app.get("/witches/{id}")
+        async def get_witch(id: int) -> dict:
+            return self.controller.get_witch(id)
 
         @self.app.post("/challenge")
         async def challenge(request: Request, response: Response) -> dict:
