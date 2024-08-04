@@ -1,0 +1,14 @@
+volumes:
+  dydb:
+
+services:
+  db:
+    image: amazon/dynamodb-local
+    ports:
+      - 8181:8000
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-dbPath", "."]
+    volumes:
+      - type: volume
+        source: dydb
+        target: /home/dynamodblocal/data
+    working_dir: /home/dynamodblocal
