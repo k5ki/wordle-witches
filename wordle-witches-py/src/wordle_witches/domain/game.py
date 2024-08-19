@@ -1,13 +1,15 @@
-from typing_extensions import List
+from typing import List
+from enum import Enum
 from wordle_witches.domain.player import Guess, Player
 
 from wordle_witches.domain.repository import PlayerRepository, WitchRepository
+from wordle_witches.domain.witch import Witch
 
 
-class Result:
-    def __init__(self, result: str, guesses: List[Guess]):
-        self.result = result
-        self.guesses = guesses
+class ChallengeResult:
+    def __init__(self, status: ChallengeStatus, histories: List[ChallengeHistory]):
+        self.status = status
+        self.histories = histories
 
 
 class Game:

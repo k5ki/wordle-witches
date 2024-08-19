@@ -1,8 +1,20 @@
+from typing import Self
 from fastapi import Request, Response
 from wordle_witches.domain.game import Game
 from wordle_witches.domain.player import Player
 
 from ..domain.repository import PlayerRepository, WitchRepository
+
+
+class ChallengeRequest:
+    def __init__(self, witch_id: int) -> None:
+        self.witch_id = witch_id
+
+    @classmethod
+    def from_dict(cls, data: dict) -> Self:
+        if not hasattr(data, "witch_id"):
+            raise Exception("")
+        return cls(int(data.get("witch_id")))  # type: ignore
 
 
 class Controller:
@@ -28,9 +40,9 @@ class Controller:
             if player is None:
                 player = self.__create_new_player(response)
         json = await request.json()
-        witch_id = int(json["witch_id"])
+        req = ChallengeRequest.from_dict(json)
         game = Game(player, self.witch_repository, self.player_repository)
-        result = game.challenge(witch_id)
+        result = game.challenge(req.witch_id)
         return {
             "result": result.result,
             "guesses": [
