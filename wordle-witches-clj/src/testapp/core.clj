@@ -5,7 +5,8 @@
    [ring.adapter.jetty :refer [run-jetty]]
    [bidi.ring :as bidi]
    [muuntaja.core :as m]
-   [testapp.scraping :refer [create-csv]])
+   [testapp.scraping :refer [create-csv]]
+   [testapp.importcsv :refer [import-csv]])
   (:import
    [java.util.logging Level]))
 
@@ -44,4 +45,5 @@
   (let [cmd (first args)]
     (cond
       (= cmd "create-csv") (create-csv "witches.csv")
+      (= cmd "import-csv") (import-csv "witches.csv")
       :else (start-server))))
