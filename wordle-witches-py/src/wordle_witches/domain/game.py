@@ -1,59 +1,39 @@
-from typing import List
+from dataclasses import dataclass
 from enum import Enum
-from wordle_witches.domain.player import Guess, Player
 
-from wordle_witches.domain.repository import PlayerRepository, WitchRepository
+from wordle_witches.domain.player import ChallengeHistory, Player
 from wordle_witches.domain.witch import Witch
 
 
-class ChallengeResult:
-    def __init__(self, status: ChallengeStatus, histories: List[ChallengeHistory]):
-        self.status = status
-        self.histories = histories
+class Result(Enum):
+    CORRECT = "correct"
+    GAME_OVER = "game_over"
+    MISS = "miss"
+    ALREADY_OVER = "already_over"
+
+
+@dataclass
+class State:
+    player: Player
 
 
 class Game:
-    def __init__(
-        self,
-        player: Player,
-        witch_repository: WitchRepository,
-        player_repository: PlayerRepository,
-    ) -> None:
-        self.player = player
-        self.witch_repository = witch_repository
-        self.player_repository = player_repository
+    def __init__(self, bingo_witch: Witch) -> None:
+        self.bingo_witch = bingo_witch
+        self.max_challenge_count = 5
 
-    def challenge(self, witch_id: int) -> Result:
-        if self.player.challenge_count() == 5:
-            return Result("game over", self.player.guesses)
+    def challenge(self, state: State, witch: Witch) -> State:
+        player = state.player
 
-        expected = self.witch_repository.bingo_witch()
-        selected = self.witch_repository.find_by_id(witch_id)
-        if expected.id == selected.id:
-            self.player.guesses.append(
-                Guess(
-                    selected.id,
-                    ["name", "nation", "branch", "unit", "team", "birthday"],
-                )
-            )
-            return Result("bingo", self.player.guesses)
+        result = Result.MISS
+        if player.challenge_count() == self.max_challenge_count:
+            result = Result.ALREADY_OVER
+        elif witch.id == self.bingo_witch.id:
+            result = Result.CORRECT
+        elif player.challenge_count() == self.max_challenge_count - 1:
+            result = Result.GAME_OVER
 
-        hint = []
-        if expected.nation == selected.nation and expected.nation != "":
-            hint.append("nation")
-        if expected.branch == selected.branch and expected.branch != "":
-            hint.append("branch")
-        if expected.unit == selected.unit and expected.unit != "":
-            hint.append("unit")
-        if expected.team == selected.team and expected.team != "":
-            hint.append("team")
-        if expected.birthday == selected.birthday and expected.birthday != "":
-            hint.append("birthday")
-
-        self.player.guesses.append(Guess(selected.id, hint))
-        self.player_repository.save(self.player)
-
-        if self.player.challenge_count() == 5:
-            return Result("game over", self.player.guesses)
-        else:
-            return Result("miss", self.player.guesses)
+        player.append_challenge(
+            ChallengeHistory(result, witch, self.bingo_witch.compare(witch))
+        )
+        return State(player)

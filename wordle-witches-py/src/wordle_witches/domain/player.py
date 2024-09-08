@@ -1,32 +1,32 @@
-from typing import List
-from enum import Enum
-from wordle_witches.domain.player import Guess
+from typing import Dict, List, Self
+from wordle_witches.domain.game import Result
 
-from wordle_witches.domain.witch import Witch
+from wordle_witches.domain.witch import ColumnCompareResult, Witch
 
-
-class ChallengeStatus(Enum):
-    CORRECT = 1
-    GAME_OVER = 2
-    MISS = 3
+from dataclasses import dataclass
 
 
-class ColumnStatus(Enum):
-    MATCHED = 1
-    PARTIALY_MATCHED = 2
-    UNMATCHED = 3
-
-
+@dataclass
 class ChallengeHistory:
-    def __init__(self, witch: Witch, column_statuses: List[ColumnStatus]) -> None:
-        self.witch = witch
-        self.column_statuses = column_statuses
+    result: Result
+    selected_witch: Witch
+    column_statuses: Dict[str, ColumnCompareResult]
+
+    def is_already_over(self) -> bool:
+        return self.result == Result.ALREADY_OVER
 
 
+@dataclass
 class Player:
-    def __init__(self, id: str, guesses: list[Guess]):
-        self.id = id
-        self.guesses = guesses
+    id: str
+    challenges: List[ChallengeHistory]
 
     def challenge_count(self) -> int:
-        return len(self.guesses)
+        return len(self.challenges)
+
+    def last_challenge(self) -> ChallengeHistory:
+        return self.challenges[-1]
+
+    def append_challenge(self, challenge: ChallengeHistory) -> Self:
+        self.challenges.append(challenge)
+        return self

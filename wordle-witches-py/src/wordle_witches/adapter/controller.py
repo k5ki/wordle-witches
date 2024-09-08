@@ -1,14 +1,15 @@
+from dataclasses import dataclass
 from typing import Self
 from fastapi import Request, Response
-from wordle_witches.domain.game import Game
+from wordle_witches.domain.game import Game, State as GameState
 from wordle_witches.domain.player import Player
 
 from ..domain.repository import PlayerRepository, WitchRepository
 
 
+@dataclass
 class ChallengeRequest:
-    def __init__(self, witch_id: int) -> None:
-        self.witch_id = witch_id
+    witch_id: int
 
     @classmethod
     def from_dict(cls, data: dict) -> Self:
@@ -25,10 +26,10 @@ class Controller:
         self.player_repository = player_repository
 
     def get_witches(self) -> list[dict]:
-        return [w.__dict__ for w in self.witch_repository.all()]
+        return [w.to_dict() for w in self.witch_repository.all()]
 
     def get_witch(self, id: int) -> dict:
-        return self.witch_repository.find_by_id(id).__dict__
+        return self.witch_repository.find_by_id(id).to_dict()
 
     async def post_challenge(self, request: Request, response: Response) -> dict:
         player = None
@@ -39,20 +40,21 @@ class Controller:
             player = self.player_repository.find_by_id(sid)
             if player is None:
                 player = self.__create_new_player(response)
+
         json = await request.json()
         req = ChallengeRequest.from_dict(json)
-        game = Game(player, self.witch_repository, self.player_repository)
-        result = game.challenge(req.witch_id)
-        return {
-            "result": result.result,
-            "guesses": [
-                {
-                    "witch": self.witch_repository.find_by_id(g.witch_id).__dict__,
-                    "hint": g.hint,
-                }
-                for g in result.guesses
-            ],
-        }
+
+        selected_witch = self.witch_repository.find_by_id(req.witch_id)
+        bingo_witch = self.witch_repository.bingo_witch()
+
+        game = Game(bingo_witch)
+
+        state = game.challenge(GameState(player), selected_witch)
+        player = state.player
+
+        self.player_repository.save(player)
+
+        return result.to_dict()
 
     def __create_new_player(self, response: Response) -> Player:
         player = self.player_repository.create()
