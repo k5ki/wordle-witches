@@ -1,10 +1,11 @@
 import * as Effect from "effect/Effect";
 import * as Console from "effect/Console";
 import * as Cli from "@effect/cli";
-import { HttpClient, FetchHttpClient } from "@effect/platform";
+import { HttpClient, FetchHttpClient, FileSystem } from "@effect/platform";
 import { BunContext, BunRuntime } from "@effect/platform-bun";
 import * as cheerio from "cheerio";
 import type { HttpClientError } from "@effect/platform/HttpClientError";
+import type { PlatformError } from "@effect/platform/Error";
 
 const csvCmd = Cli.Command.make("csv", {}, ({}) => Console.log("see --help"));
 
@@ -25,8 +26,8 @@ cli(process.argv).pipe(
 
 const createCSV = (): Effect.Effect<
   void,
-  HttpClientError,
-  HttpClient.HttpClient.Service
+  HttpClientError | PlatformError,
+  HttpClient.HttpClient.Service | FileSystem.FileSystem
 > =>
   Effect.gen(function* () {
     const client = (yield* HttpClient.HttpClient).pipe(
@@ -40,8 +41,29 @@ const createCSV = (): Effect.Effect<
       );
     return yield* response.pipe(
       Effect.map(extract),
-      Effect.andThen(Console.log),
+      Effect.flatMap(writeAsCSV),
     );
+  });
+
+const writeAsCSV = (
+  ws: Array<Witch>,
+): Effect.Effect<void, PlatformError, FileSystem.FileSystem> =>
+  Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
+    yield* fs.remove("witches.csv");
+    yield* Effect.all(
+      ws
+        .map(
+          (w) =>
+            `${w.name},${w.img ?? ""},${w.nation ?? ""},${w.branch ?? ""},${w.unit ?? ""},${w.team ?? ""},${w.birthday ?? ""}\n`,
+        )
+        .map((line) =>
+          fs.writeFileString("witches.csv", line, {
+            flag: "a",
+          }),
+        ),
+    );
+    yield* Effect.all(ws.map((w) => Console.log(w)));
   });
 
 type Witch = {
@@ -65,7 +87,7 @@ const extract = (html: string): Array<Witch> => {
     if (i === 0) return;
     const tds = selector(element).find("td");
     ws.push({
-      name: tds.eq(0).find("center > a").first().text(),
+      name: tds.eq(0).find("center").first().text().trim(),
       img:
         tds.eq(0).find("img").first().attr("data-src") ??
         tds.eq(0).find("img").first().attr("src") ??
